@@ -275,15 +275,3 @@ If you haven't already, create a `topics.add` file in your views. Use the `types
 <a href="https://codeadam.ca">
 <img src="https://codeadam.ca/images/code-block.png" width="100">
 </a>
-
- 
-*** 
-
-## Repo Resources
-
-* [Visual Studio Code](https://code.visualstudio.com/)
-* [Laravel](https://laravel.com/)
-
-<a href="https://codeadam.ca">
-<img src="https://codeadam.ca/images/code-block.png" width="100">
-</a>
