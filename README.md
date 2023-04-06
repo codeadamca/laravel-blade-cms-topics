@@ -90,47 +90,59 @@ We need a new model to define the `topics` table relationships and rules. The mo
     
 ### Factory
 
-We need a factory to give Laravel instructions on how to populate the factory table. 
+We need a factory to give Laravel instructions on how to populate the `topics` table. 
 
 1. Creat a new factory:
 
     ```sh
-    php artisan make:factory EntryFactory
+    php artisan make:factoryTopicFactory
     ```
     
-2. You will now have a filed named `EntryFactory.php` in the `/database/factories` folder. Open this faile and change the definiation method retrn value to:
+2. You will now have a filed named `TopicFactory.php` in the `/database/factories` folder. Open this file and change the definiation method return value to:
 
     ```php
     return [
-        'title' => $this->faker->sentence,
-        'content' => $this->faker->paragraph,
-        'learned_at' => $this->faker->dateTimeThisMonth,
+        'title' => $this->faker->word,
     ];
     ```
     
 ### Seeding
 
-Lastly we need to give Laravel instructions on how many entries to add. 
+Lastly we need to give Laravel instructions on how many topics and connections to add. 
 
 1. Open up the `DatabaseSeeder.php` file in the `/database/seeders` folder.
 
-2. At the top of the file add the entries model, add this line below `use App\ModelProject;`:
+2. At the top of the file add the entries model, add this line below `use App\ModelEntry;`:
 
     ```php
-    use App\Models\Entry;
+    use App\Models\Topic;
     ```
     
-3. Add some code to remove existing records when seeding it initiated. Add this below `Project::truncate();`:
+3. Add some code to remove existing topics when seeding is initiated. Add this below `Project::truncate();`:
 
     ```php
-    Entry::truncate();
+    Topic::truncate();
     ```
     
-4. Add code to add four fake entries. Add this line under `Project::factory()->count(4)->create();`:
+    > **Note**  
+    > We do not need to seed or truncate the `entry_topic` table.
+    
+4. Add code to add four fake topics. Add this line before `Project::factory()->count(4)->create();`:
 
     ```php
-    Entry::factory()->count(4)->create();
+    Topic::factory()->count(4)->create();
     ```
+    
+5. Finally we need to add a few connections to the entries. Change the line of code that adds entries to:
+
+    ```php
+    Entry::factory()->count(4)->create()->each(function($entry){
+        $topics = Topic::all()->random(rand(1,2) )->pluck('id');
+        $entry->topics()->attach($topics);
+    });
+    ```
+    
+    This code will add four entries and then attach one to three random topics. 
     
 ### Execute
     
@@ -140,92 +152,59 @@ Lastly we need to execute our migrations and seeding. Using the Terminal (or Git
 php artisan migrate:fresh --seed
 ```
 
-![Migrate and Seed](_readme/screenshot-migrate-seed.png)
-
-If you received no errors, there will be tables with data in your database. OPen up phpMyAdmin to check!
-
-![Entries Table](_readme/screenshot-entries.png)
-
-
- - Make topics migration
- - Make Topic model
- - Make topic factory
- - Add to seeding
+If you received no errors, there will be tables with data in your database. Open up phpMyAdmin to check!
  
- - Make join table migration
- 
- - Add belongsToMany methods
- 
- - Make join table seeding
- 
- 
- 
- - Add link to dashboard
- - Add routes
-
-
-
-
-
- - api routes
- 
- 
- 
- 
-
-
-
-
 ## List
 
-Now that the database is ready and poulated, we need to create the list, add, edit, and delete code. Let's start by adding the list.
+Now that the database is ready and populated, we need to create the topics list and entry add code. Let's start by adding the list.
 
 ### Dashboard
 
-Open up `dashboard.blade.php` in the `resources/views/console/` folder, and add link to manage entries. Add this line after types.
+Open up `dashboard.blade.php` in the `resources/views/console/` folder, and add link to manage topics. Add this line after entries.
 
 ```php
-<li><a href="/console/entries/list">Manage Journal Entries</a></li>
+<li><a href="/console/topics/list">Manage Topics</a></li>
 ```
 
-Open a browser, login to the CMS, and click `Manage Journal Entries`. You should get a `page not found` error. We need to add some new routes.
-
-![Page Not Found](_readme/screenshot-404.png)
+Open a browser, login to the CMS, and click `Manage Topics Entries`. You should get a `page not found` error. We need to add some new routes.
 
 ### Routes
 
-Open the `web.php` file in the routes folder. Import the `EntriesController` by adding a `use` command to the top of your file.
+Open the `web.php` file in the routes folder. Import the `TopicsController` by adding a `use` command to the top of your file.
 
 ```php
-use App\Http\Controllers\EntriesController;
+use App\Http\Controllers\TopicsController;
 ```
 
-Copy and paste one of the list routes from one of the other modules and update for `entries`.
+Copy and paste one of the list routes from one of the other modules and update for `topics`.
 
 ```php
-Route::get('/console/entries/list', [EntriesController::class, 'list'])->middleware('auth');
+Route::get('/console/topics/list', [TopicsController::class, 'list'])->middleware('auth');
 ```
 
-Refresh your browser, and you will get a new error message that states `Controller EntriesController does not exist`.
+Also add a route for the entries add form:
 
-![Controller Doees Not Exist](_readme/screenshot-controller.png)
+```php
+Route::get('/console/entries/add', [EntriesController::class, 'addForm'])->middleware('auth');
+Route::post('/console/entries/add', [EntriesController::class, 'add'])->middleware('auth');
+```
 
-### Controller and MEthod
+Refresh your browser, and you will get a new error message that states `Controller TopicsController does not exist`.
+
+### Controller and Method
 
 Use the Laravel Artisan tool to make a new controller.
 
 ```sh
-php artisan make:controller EntriesController
+php artisan make:controller TopicsController
 ```
 
-Refresh the browser and you will get a new error that states `Method EntriesController::list does not exist`.
+Refresh the browser and you will get a new error that states `Method TopicsController::list does not exist`.
 
-![Method Does Not Exist](_readme/screenshot-method.png)
-
-Open up the new `EntriesCopntroller.php` file. Add a `use` comment too import the Entry model.
+Open up the new `TopicsCopntroller.php` file. Add a `use` command to import the Topic model.
 
 ```php
-use App\Models\Entry;
+use App\Models\Topic;
 ```
 
 Add a list method. This can be copied from one of the other modules and then adjusted for entries.
@@ -233,19 +212,17 @@ Add a list method. This can be copied from one of the other modules and then adj
 ```php
 public function list()
 {
-    return view('entries.list', [
-        'entries' => Entry::all()
+    return view('topics.list', [
+        'topics' => Topic::all()
     ]);
 }
 ```
 
 Refresh the browser and you will get a new error that states `View [entries.list] not found.`.
-
-![View Doees Not Exist](_readme/screenshot-view.png)
    
 ### Views
 
-Lastly we need to create a view. In the `resources/views/` folder, create a new folder named `entries` and copy the `list.blade.php` file from one of the other modules, and adjust for entries.
+Lastly we need to create a view. In the `resources/views/` folder, create a new folder named `topics` and copy the `list.blade.php` file from one of the other modules, and adjust for topics. The `types.lisst` view is probably the most similar. 
 
 ```php
 @extends ('layout.console')
@@ -254,51 +231,39 @@ Lastly we need to create a view. In the `resources/views/` folder, create a new 
 
 <section class="w3-padding">
 
-    <h2>Manage Journal Entries</h2>
+    <h2>Manage Topics</h2>
 
     <table class="w3-table w3-stripped w3-bordered w3-margin-bottom">
         <tr class="w3-red">
-            <th>Title</th>
-            <th>Date</th>
+            <th>Name</th>
             <th></th>
             <th></th>
         </tr>
-        @foreach ($entries as $entry)
+        <?php foreach($topics as $topic): ?>
             <tr>
-                <td>{{$entry->title}}</td>
-                <td>$entry->learned_at}}</td>
-                <td><a href="/console/entries/edit/{{$entry->id}}">Edit</a></td>
-                <td><a href="/console/entries/delete/{{$entry->id}}">Delete</a></td>
+                <td>{{$topic->title}}</td>
+                <td><a href="/console/topics/edit/{{$topic->id}}">Edit</a></td>
+                <td><a href="/console/topics/delete/{{$topic->id}}">Delete</a></td>
             </tr>
-        @endforeach
+        <?php endforeach; ?>
     </table>
 
-    <a href="/console/entries/add" class="w3-button w3-green">New Journal Entry</a>
+    <a href="/console/topics/add" class="w3-button w3-green">New Topic</a>
 
 </section>
 
 @endsection
 ```
 
-Final we can use the Carbon class to format the date. Switch the line that outputs the date.
-
-```php
-<td>{{$entry->learned_at}}</td>
-```
-
-With this.
-
-```php
-<td>{{\Carbon\Carbon::parse($entry->learned_at)->format('d/m/Y h:i A')}}</td>
-```
-
 Refresh your browser.
 
-![Completed](_readme/screenshot-complete.png)
+## Add
 
-## Add, Edit and Delete
+If you haven't already, create a `topics.add` file in your views. Use the `types.add` view as a guide.
 
-Using the projects module as a guide, create the add, edit, and delete pages for the entries module.
+
+> **Warning**  
+> This repo still has a last few steps. Coming soon!
    
 ***
 
