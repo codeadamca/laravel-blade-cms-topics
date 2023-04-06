@@ -58,15 +58,35 @@ cd laravel-blade-cms
     
 ### Model
 
-We need a new model to define the `entries` table relationships and rules. The model scaffolding that Artisan provides is sufficient.
+We need a new model to define the `topics` table relationships and rules. The model scaffolding that Artisan provides is sufficient.
 
-1. Create a new `Entry` model: 
+1. Create a new `Topic` model: 
 
     ```sh
-    php artisan make:model Entry
+    php artisan make:model Topic
     ```
     
-2. You will now have a filed named `Entry.php` in the `/app/Models` folder. No changes needed.
+2. You will now have a filed named `Topic.php` in the `/app/Models` folder. No changes needed.
+
+3. We also need to add the relationships to the `Entry.php` and `Topic.php` models. Add this method to the `Entry.php` file just after the `use HasFactory;` line:
+
+    ```php
+    public function topics()
+    {
+        return $this->belongsToMany(Topic::class);
+    }
+    ```
+    
+    And this method to the `Topic.php` file:
+    
+    ```php
+    public function entries()
+    {
+        return $this->belongsToMany(Entry::class);
+    }
+
+> **Note**  
+> We do not need a model for the `entry_topic` table.
     
 ### Factory
 
