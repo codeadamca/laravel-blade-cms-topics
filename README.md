@@ -40,8 +40,8 @@ cd laravel-blade-cms
     php artisan make:migration create_entry_topic_table
     ```
 
-    > **Note**  
-    > Laravel uses a database naming convention named [Eloquent](https://laravel.com/docs/10.x/eloquent). Eloquent states that the connection table in a many to many relationship is named using the two table names (singular).
+> [!Note]  
+> Laravel uses a database naming convention named [Eloquent](https://laravel.com/docs/10.x/eloquent). Eloquent states that the connection table in a many to many relationship is named using the two table names (singular).
 
 4. In the new migration file, change the schema to: 
 
@@ -53,8 +53,8 @@ cd laravel-blade-cms
     });
     ```
     
-    > **Note**  
-    > The foreign keys are named `<TABLENAME>_id`. Also note that we do not need timestamps in this table. 
+> [!Note]  
+> The foreign keys are named `<TABLENAME>_id`. Also note that we do not need timestamps in this table. 
     
 ### Model
 
@@ -85,7 +85,7 @@ We need a new model to define the `topics` table relationships and rules. The mo
         return $this->belongsToMany(Entry::class);
     }
 
-> **Note**  
+> [!Note]  
 > We do not need a model for the `entry_topic` table.
     
 ### Factory
@@ -261,8 +261,7 @@ Refresh your browser.
 
 If you haven't already, create a `topics.add` file in your views. Use the `types.add` view as a guide.
 
-
-> **Warning**  
+> [!Warning]  
 > This repo still has a last few steps. Coming soon!
    
 ***
